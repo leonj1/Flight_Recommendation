@@ -27,7 +27,7 @@ Flight_Recommendation/
 └── README.md
 ```
 
-## Installation
+## Installation and Setup
 
 1. Clone the repository:
 ```bash
@@ -35,35 +35,44 @@ git clone <repository-url>
 cd Flight_Recommendation
 ```
 
-2. Install Python dependencies:
-```bash
-pip install fastapi openai serpapi uvicorn
-```
-
-3. Install frontend dependencies:
-```bash
-npm install
-```
-
-4. Set up environment variables:
+2. Set up environment variables:
 ```bash
 export FIREWORKS_API_KEY="your-fireworks-api-key"
+export SERPAPI_API_KEY="your-serpapi-key"
 ```
 
-## Running the Application
+## Building and Running
 
-1. Start the backend server:
+The application uses Docker and can be easily built and run using the provided Makefile:
+
+1. Build the Docker image:
 ```bash
-cd genai-functions
-uvicorn main:app --reload
+make build
 ```
-The API server will start at `http://localhost:8000`
 
-2. Start the frontend development server:
+2. Run the application:
 ```bash
-npm run dev
+make run
 ```
-The frontend will be available at `http://localhost:3000`
+
+This will start both the backend and frontend services. By default:
+- Backend will be available at http://localhost:2325
+- Frontend will be available at http://localhost:3000
+
+To stop the application:
+```bash
+make stop
+```
+
+To clean up Docker resources:
+```bash
+make clean
+```
+
+You can customize the ports by setting environment variables:
+```bash
+BACKEND_PORT=8000 FRONTEND_PORT=3001 make run
+```
 
 ## Usage
 
