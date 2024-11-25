@@ -32,15 +32,41 @@ class Messages(BaseModel):
 # %%
 
 # Create a FastAPI App instance
-app = FastAPI()
+app = FastAPI(
+    title="RAG Application",
+    description="A FastAPI application for RAG",
+    version="1.0.0",
+    contact={
+        "name": "Your Name",
+        "email": "your@email.com",
+        "url": "https://www.example.com",
+    },
+    license={
+        "name": "Apache 2.0",
+        "url": "https://www.apache.org/licenses/LICENSE-2.0.html",
+    },
+)
 
-# Add CORS middleware
+# Define allowed origins
+origins = [
+    "http://10.1.1.144:2323",  # Frontend URL
+    "http://10.1.1.144:2325",  # Backend URL
+    "http://localhost:2323",
+    "http://localhost:2325",
+    "http://localhost:3000",
+    "http://127.0.0.1:2323",
+    "http://127.0.0.1:2325",
+    "http://127.0.0.1:3000"
+]
+
+# Add CORS middleware with specific configuration
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Get today's date
@@ -166,24 +192,37 @@ def chat(messages: Messages):
     resp = search.get_dict()
 
     if final_args["arrival_date"] is not None:
-        return {
-            "flights": [
-                {
-                    "price": flight["price"],
-                    "airline_logo": single_flight["airline_logo"],
-                    "arrival_airport_name": single_flight["arrival_airport"]["name"],
-                    "arrival_airport_time": single_flight["arrival_airport"]["time"],
-                    "departure_airport_name": single_flight["departure_airport"][
-                        "name"
-                    ],
-                    "departure_airport_time": single_flight["departure_airport"][
-                        "time"
-                    ],
-                }
-                for flight in resp["best_flights"]
-                for single_flight in flight["flights"][:3]
-            ]
-        }
+        # Check if we have flights data in the response
+        if "best_flights" not in resp:
+            return {
+                "flights": [],
+                "error": "No flights found for the specified route and date"
+            }
+            
+        try:
+            return {
+                "flights": [
+                    {
+                        "price": flight["price"],
+                        "airline_logo": single_flight["airline_logo"],
+                        "arrival_airport_name": single_flight["arrival_airport"]["name"],
+                        "arrival_airport_time": single_flight["arrival_airport"]["time"],
+                        "departure_airport_name": single_flight["departure_airport"][
+                            "name"
+                        ],
+                        "departure_airport_time": single_flight["departure_airport"][
+                            "time"
+                        ],
+                    }
+                    for flight in resp["best_flights"]
+                    for single_flight in flight["flights"][:3]
+                ]
+            }
+        except KeyError as e:
+            return {
+                "flights": [],
+                "error": f"Error processing flight data: {str(e)}"
+            }
 
 
 #### OUTPUT

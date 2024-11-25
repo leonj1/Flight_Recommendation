@@ -44,7 +44,7 @@ COPY --from=frontend-builder /frontend/postcss.config.js ./
 
 # Set environment variables
 ENV HOST=0.0.0.0
-ENV BACKEND_PORT=8000
+ENV BACKEND_PORT=2325
 ENV FRONTEND_PORT=3000
 
 # Start both backend and frontend services

@@ -293,7 +293,7 @@ interface FlightObj {
 
 export default function () {
   const { messages, handleSubmit, input, handleInputChange } = useChat({
-    api: "http://localhost:8000/chat",
+    api: "http://10.1.1.144:8000/chat",
   });
 
   return (

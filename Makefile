@@ -3,7 +3,7 @@ IMAGE_NAME = flight-recommendation
 IMAGE_TAG = latest
 
 # Default ports (can be overridden by environment variables)
-BACKEND_PORT ?= 8000
+BACKEND_PORT ?= 2325
 FRONTEND_PORT ?= 3000
 
 # Default target
@@ -19,10 +19,11 @@ run: stop ## Run the Docker container
 	@echo "Running Docker container..."
 	docker run -d \
 		--name $(IMAGE_NAME) \
-		-p $(BACKEND_PORT):8000 \
+		-p $(BACKEND_PORT):2325 \
 		-p $(FRONTEND_PORT):3000 \
 		-e FIREWORKS_API_KEY=${FIREWORKS_API_KEY} \
-		-e BACKEND_PORT=8000 \
+		-e SERPAPI_API_KEY=${SERPAPI_API_KEY} \
+		-e BACKEND_PORT=2325 \
 		-e FRONTEND_PORT=3000 \
 		$(IMAGE_NAME):$(IMAGE_TAG)
 	@echo "Services are starting..."
