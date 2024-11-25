@@ -1,8 +1,17 @@
 # %%
 import os
 import json
+import logging
 from typing import List
 from datetime import datetime
+
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+logger = logging.getLogger(__name__)
 
 # OpenAI
 import openai
@@ -122,7 +131,9 @@ client = openai.OpenAI(
 
 @app.post("/chat")
 def chat(messages: Messages):
+    logger.info("Received chat request")
     messages_json = (messages.model_dump())["messages"]
+    logger.debug(f"Processed messages: {messages_json}")
     # [
     # {
     #     "role": "user",
@@ -148,12 +159,18 @@ def chat(messages: Messages):
     # ]
 
     # Call Fireworks Function to determine the flights user asked for
-    chat_completion = client.chat.completions.create(
-        tools=tools,
-        temperature=0.1,
-        messages=[messages_json[0], messages_json[-1]],
-        model="accounts/fireworks/models/firefunction-v2",
-    )
+    logger.info("Calling Fireworks API for function completion")
+    try:
+        chat_completion = client.chat.completions.create(
+            tools=tools,
+            temperature=0.1,
+            messages=[messages_json[0], messages_json[-1]],
+            model="accounts/fireworks/models/firefunction-v2",
+        )
+        logger.debug(f"Received completion response: {chat_completion}")
+    except Exception as e:
+        logger.error(f"Error calling Fireworks API: {str(e)}")
+        raise
     # Parse the generated function call to obtain the Airport codes and date of travel
     generated_tool_call = json.loads(
         chat_completion.choices[0].message.model_dump_json(include={"tool_calls"})
@@ -185,15 +202,21 @@ def chat(messages: Messages):
             }
         )
 
-    # Obtain the relevant content on YouTube
-    search = GoogleSearch(params)
-
-    # Return it as the response to the API endpoint
-    resp = search.get_dict()
+    # Obtain the relevant content from Google Flights
+    logger.info(f"Searching flights with params: {params}")
+    try:
+        search = GoogleSearch(params)
+        resp = search.get_dict()
+        logger.info(f"Full flight search response: {json.dumps(resp, indent=2)}")
+        logger.debug(f"Received flight search response: {resp}")
+    except Exception as e:
+        logger.error(f"Error searching flights: {str(e)}")
+        raise
 
     if final_args["arrival_date"] is not None:
         # Check if we have flights data in the response
         if "best_flights" not in resp:
+            logger.warning("No flights found in response")
             return {
                 "flights": [],
                 "error": "No flights found for the specified route and date"
@@ -219,6 +242,7 @@ def chat(messages: Messages):
                 ]
             }
         except KeyError as e:
+            logger.error(f"Error processing flight data: {str(e)}")
             return {
                 "flights": [],
                 "error": f"Error processing flight data: {str(e)}"
