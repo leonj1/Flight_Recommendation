@@ -1,5 +1,3 @@
-// File: app/page.tsx
-
 "use client";
 
 import { useChat } from "ai/react";
@@ -13,9 +11,9 @@ interface FlightObj {
   arrival_airport_time: string;
 }
 
-export default function () {
+export default function Home() {
   const { messages, handleSubmit, input, handleInputChange } = useChat({
-    api: "http://localhost:3000/chat",
+    api: "/api/chat",
   });
 
   return (
@@ -30,7 +28,7 @@ export default function () {
           value={input}
           autoComplete="off"
           onChange={handleInputChange}
-          placeholder="What kind of movies you want to watch?"
+          placeholder="Ask about flights (e.g., 'Show flights from Paris to London')"
           className="mt-3 min-w-[300px] rounded border px-2 py-1 outline-none focus:border-black text-black"
         />
         <button
